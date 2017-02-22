@@ -14,44 +14,6 @@ namespace RSAProject
         RSACryptoServiceProvider RSA = new RSACryptoServiceProvider();
         byte[] plaintext;
         byte[] encryptedtext;
-        static public byte[] Encryption(byte[] Data, RSAParameters RSAKey, bool DoOAEPPadding)
-        {
-            try
-            {
-                byte[] encryptedData;
-                using (RSACryptoServiceProvider RSA = new RSACryptoServiceProvider())
-                {
-                    RSA.ImportParameters(RSAKey);
-                    encryptedData = RSA.Encrypt(Data, DoOAEPPadding);
-                }
-                return encryptedData;
-            }
-            catch (CryptographicException e)
-            {
-                Console.WriteLine(e.Message);
-                Console.WriteLine("Things are here");
-                return null;
-            }
-        }
-
-        static public byte[] Decryption(byte[] Data, RSAParameters RSAkey, bool DoOAEPPadding)
-        {
-            try
-            {
-                byte[] decryptedData;
-                using (RSACryptoServiceProvider RSA = new RSACryptoServiceProvider())
-                {
-                    RSA.ImportParameters(RSAkey);
-                    decryptedData = RSA.Decrypt(Data, DoOAEPPadding);
-                }
-                return decryptedData;
-            }
-            catch (CryptographicException e)
-            {
-                Console.WriteLine(e.ToString());
-                return null;
-            }
-        }
 
         /// <summary>
         /// The main entry point for the application.
@@ -60,9 +22,21 @@ namespace RSAProject
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            using (RSACryptoServiceProvider playtest = new RSACryptoServiceProvider(1024))
+            {
+                string message = "Alice and Bob";
+                byte[] unencoded_message = Encoding.ASCII.GetBytes(message);
+                byte[] encoded_message = playtest.Encrypt(unencoded_message, false);
+                RSAParameters parameters = playtest.ExportParameters(true);
+                byte[] p = parameters.P;
+                if (BitConverter.IsLittleEndian)
+                    Array.Reverse(p);
+
+                int converted_bytes = BitConverter.ToInt32(p, 0);
+
+                Console.WriteLine("End.");
+            }
+            
         }
     }
 }
