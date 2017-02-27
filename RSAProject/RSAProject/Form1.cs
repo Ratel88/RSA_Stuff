@@ -6,6 +6,10 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Security.Cryptography;
+using System.Timers;
+using System.Numerics;
+using System.Diagnostics;
+using System.Threading;
 
 namespace RSAEncryption
 {
@@ -64,6 +68,8 @@ namespace RSAEncryption
         }
         #endregion
 
+        
+
         #region--variables area
         UnicodeEncoding ByteConverter = new UnicodeEncoding();
         RSACryptoServiceProvider RSA = new RSACryptoServiceProvider();
@@ -78,8 +84,27 @@ namespace RSAEncryption
             encryptedtext = Encryption(plaintext, RSA.ExportParameters(false), false);
             txtencrypt.Text = ByteConverter.GetString(encryptedtext);
 
+
+            using (RSACryptoServiceProvider playtest = new RSACryptoServiceProvider(384))// range from 384 to 16384 bits in 8 bit intervals
+            {
+                Stopwatch stopWatch = new Stopwatch();
+                stopWatch.Start();
+                     
+                string message = "Alice and Bob";
+                byte[] unencoded_message = Encoding.ASCII.GetBytes(message);
+                byte[] encoded_message = playtest.Encrypt(unencoded_message, false);
+                RSAParameters parameters = playtest.ExportParameters(true);
+                byte[] p = parameters.P;
+                if (BitConverter.IsLittleEndian)
+                    Array.Reverse(p);
+
+                int converted_bytes = BitConverter.ToInt32(p, 0);
+                stopWatch.Stop();
+                Console.WriteLine("End.");
+            }
         }
-        private void button2_Click(object sender, EventArgs e)
+        
+private void button2_Click(object sender, EventArgs e)
         {
             byte[] decryptedtex = Decryption(encryptedtext, RSA.ExportParameters(true), false);
             txtdecrypt.Text = ByteConverter.GetString(decryptedtex);
