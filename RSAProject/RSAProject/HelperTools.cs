@@ -11,6 +11,9 @@ namespace HelperTools
     {
         public static string convert(Byte[] array)
         {
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(array);
+
             BigInteger final_number = 0;
             BigInteger exponent_calculator = 0;
             for(int i = 0; i < array.Length; i++)

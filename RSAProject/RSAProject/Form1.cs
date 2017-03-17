@@ -95,6 +95,7 @@ namespace RSAEncryption
                 byte[] encoded_message = playtest.Encrypt(unencoded_message, false);
                 RSAParameters parameters = playtest.ExportParameters(true);
                 byte[] p = parameters.P;
+                string mod = HelperTools.ByteArrayToString.convert(parameters.Modulus);
                 if (BitConverter.IsLittleEndian)
                     Array.Reverse(p);
 
