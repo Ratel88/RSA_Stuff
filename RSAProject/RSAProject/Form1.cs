@@ -94,11 +94,16 @@ namespace RSAEncryption
                 byte[] unencoded_message = Encoding.ASCII.GetBytes(message);
                 byte[] encoded_message = playtest.Encrypt(unencoded_message, false);
                 RSAParameters parameters = playtest.ExportParameters(true);
-                byte[] p = parameters.P;
-                if (BitConverter.IsLittleEndian)
-                    Array.Reverse(p);
+                byte[] p = parameters.Modulus;
+                
+                string mod = HelperTools.ByteArrayToString.convert(parameters.Modulus);
+                BigInteger p_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.P));
+                BigInteger q_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Q));
+                BigInteger mod_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus));
 
                 int converted_bytes = BitConverter.ToInt32(p, 0);
+                IEnumerable<BigInteger> query = HelperTools.Erastosthenes.GetPrimeFactors(mod_big);
+                BigInteger[] factors = query.Cast<BigInteger>().ToArray();
                 stopWatch.Stop();
                 Console.WriteLine("End.");
             }
