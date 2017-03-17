@@ -105,7 +105,7 @@ namespace HelperTools
         {
             List<BigInteger> factors = new List<BigInteger>();
             Erastosthenes erastosthenes = new Erastosthenes(value);
-            foreach (int prime in erastosthenes)
+            foreach (BigInteger prime in erastosthenes)
             {
                 while(value % prime == 0)
                 {

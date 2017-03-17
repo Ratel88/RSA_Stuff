@@ -103,7 +103,6 @@ namespace RSAEncryption
 
                 int converted_bytes = BitConverter.ToInt32(p, 0);
                 IEnumerable<BigInteger> query = HelperTools.Erastosthenes.GetPrimeFactors(mod_big);
-                BigInteger[] factors = query.Cast<BigInteger>().ToArray();
                 stopWatch.Stop();
                 Console.WriteLine("End.");
             }
