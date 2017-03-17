@@ -9,6 +9,7 @@ namespace HelperTools
 {
     class ByteArrayToString
     {
+        //converts a byte[] to string equivalent to a decimal number. 
         public static string convert(Byte[] array)
         {
             if (BitConverter.IsLittleEndian)
