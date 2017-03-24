@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace HelperTools
 {
@@ -15,7 +16,7 @@ namespace HelperTools
         {
             BigInteger final_number = 0;
             BigInteger exponent_calculator = 0;
-            for(int i = 0; i < array.Length; i++)
+            for (int i = 0; i < array.Length; i++)
             {
                 exponent_calculator = BigInteger.Pow(array[i], i);
                 final_number += exponent_calculator;
@@ -41,7 +42,8 @@ namespace HelperTools
             return temp;
         }
     }
-    
+
+/*
     public class Erastosthenes: IEnumerable<BigInteger>
     {
         private BigInteger to_factor;
@@ -61,24 +63,24 @@ namespace HelperTools
         {
             bool isPrime = true;
 
-            foreach (BigInteger prime in _primes)
+            Parallel.ForEach(_primes, (prime, state) =>
             {
                 if ((checkValue % prime) == 0 && prime <= SqRt(checkValue))
                 {
                     isPrime = false;
-                    break;
+                    state.Stop();
                 }
-            }
+            });
 
             return isPrime;
         }
 
         public IEnumerator<BigInteger> GetEnumerator()
         {
-            foreach (BigInteger prime in _primes)
-            {
-                yield return prime;
-            }
+            Parallel.ForEach(_primes, (prime) =>
+           {
+               yield return prime;
+           });
 
             while(_lastChecked <= SqRt(to_factor))
             {
@@ -122,5 +124,5 @@ namespace HelperTools
 
             return factors;
         }
-    }
+    }*/
 }
