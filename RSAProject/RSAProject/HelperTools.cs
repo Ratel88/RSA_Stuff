@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HelperTools
 {
@@ -40,7 +37,19 @@ namespace HelperTools
             return temp;
         }
     }
+
+    public class BigIntegerTools
+    {
+        public static BigInteger SqRt(BigInteger N)
+        {
+            return new BigInteger(Math.Exp(BigInteger.Log(N) / 2));
+        }
+    }
     
+
+    /**
+     * Likely deprecated by LeedamKeyson algorithm implemented in it's own class/namespace.
+     **/
     public class Erastosthenes: IEnumerable<BigInteger>
     {
         private BigInteger to_factor;
@@ -62,7 +71,7 @@ namespace HelperTools
 
             foreach (BigInteger prime in _primes)
             {
-                if ((checkValue % prime) == 0 && prime <= SqRt(checkValue))
+                if ((checkValue % prime) == 0 && prime <= BigIntegerTools.SqRt(checkValue))
                 {
                     isPrime = false;
                     break;
@@ -79,7 +88,7 @@ namespace HelperTools
                 yield return prime;
             }
 
-            while(_lastChecked <= SqRt(to_factor))
+            while(_lastChecked <= HelperTools.BigIntegerTools.SqRt(to_factor))
             {
                 _lastChecked++;
 
@@ -94,11 +103,6 @@ namespace HelperTools
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-        private BigInteger SqRt(BigInteger N)
-        {
-            return new BigInteger(Math.Exp(BigInteger.Log(N) / 2));
         }
 
         public static IEnumerable<BigInteger> GetPrimeFactors(BigInteger value)
