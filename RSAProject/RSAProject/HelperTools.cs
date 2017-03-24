@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
 
 namespace HelperTools
 {
@@ -16,7 +12,7 @@ namespace HelperTools
         {
             BigInteger final_number = 0;
             BigInteger exponent_calculator = 0;
-            for (int i = 0; i < array.Length; i++)
+            for(int i = 0; i < array.Length; i++)
             {
                 exponent_calculator = BigInteger.Pow(array[i], i);
                 final_number += exponent_calculator;
@@ -24,7 +20,6 @@ namespace HelperTools
 
             return final_number.ToString();
         }
-
     }
 
     class RSAParametersTranslator
@@ -43,7 +38,18 @@ namespace HelperTools
         }
     }
 
-/*
+    public class BigIntegerTools
+    {
+        public static BigInteger SqRt(BigInteger N)
+        {
+            return new BigInteger(Math.Exp(BigInteger.Log(N) / 2));
+        }
+    }
+    
+
+    /**
+     * Likely deprecated by LeedamKeyson algorithm implemented in it's own class/namespace.
+     **/
     public class Erastosthenes: IEnumerable<BigInteger>
     {
         private BigInteger to_factor;
@@ -63,26 +69,26 @@ namespace HelperTools
         {
             bool isPrime = true;
 
-            Parallel.ForEach(_primes, (prime, state) =>
+            foreach (BigInteger prime in _primes)
             {
-                if ((checkValue % prime) == 0 && prime <= SqRt(checkValue))
+                if ((checkValue % prime) == 0 && prime <= BigIntegerTools.SqRt(checkValue))
                 {
                     isPrime = false;
-                    state.Stop();
+                    break;
                 }
-            });
+            }
 
             return isPrime;
         }
 
         public IEnumerator<BigInteger> GetEnumerator()
         {
-            Parallel.ForEach(_primes, (prime) =>
-           {
-               yield return prime;
-           });
+            foreach (BigInteger prime in _primes)
+            {
+                yield return prime;
+            }
 
-            while(_lastChecked <= SqRt(to_factor))
+            while(_lastChecked <= HelperTools.BigIntegerTools.SqRt(to_factor))
             {
                 _lastChecked++;
 
@@ -99,16 +105,11 @@ namespace HelperTools
             return GetEnumerator();
         }
 
-        private BigInteger SqRt(BigInteger N)
-        {
-            return new BigInteger(Math.Exp(BigInteger.Log(N) / 2));
-        }
-
         public static IEnumerable<BigInteger> GetPrimeFactors(BigInteger value)
         {
             List<BigInteger> factors = new List<BigInteger>();
             Erastosthenes erastosthenes = new Erastosthenes(value);
-            foreach (int prime in erastosthenes)
+            foreach (BigInteger prime in erastosthenes)
             {
                 while(value % prime == 0)
                 {
@@ -124,5 +125,5 @@ namespace HelperTools
 
             return factors;
         }
-    }*/
+    }
 }
