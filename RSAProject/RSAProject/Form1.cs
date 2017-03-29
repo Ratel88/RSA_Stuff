@@ -4,11 +4,13 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Security.Cryptography;
 using System.Timers;
 using System.Numerics;
 using System.Diagnostics;
+
 using System.Threading;
 
 namespace RSAEncryption
@@ -100,8 +102,13 @@ namespace RSAEncryption
                 BigInteger p_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.P));
                 BigInteger q_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Q));
                 BigInteger mod_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus));
+                BigInteger[] factors;
 
-                LeedamAlgorithm.LeedamKeyson.factorModulusParallel(new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus)));
+                Task t = Task.Run(() =>
+                {
+                    factors = LeedamAlgorithm.LeedamKeyson.factorModulusSerial(new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus)));
+                });
+                t.Wait();
                 //int converted_bytes = BitConverter.ToInt32(p, 0);
                 //IEnumerable<BigInteger> query = HelperTools.Erastosthenes.GetPrimeFactors(mod_big);
                 stopWatch.Stop();

@@ -43,7 +43,7 @@ namespace RSAProject
     {
         public static IEnumerable<BigInteger> SteppedRange(BigInteger fromInclusive, BigInteger toExclusive, int step)
         {
-            for (var i = fromInclusive; i < toExclusive; i += step)
+            for (var i = fromInclusive; i > toExclusive; i += step)
             {
                 yield return i;
             }
