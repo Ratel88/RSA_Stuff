@@ -101,7 +101,7 @@ namespace RSAEncryption
                 BigInteger q_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Q));
                 BigInteger mod_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus));
 
-                BigInteger[] factors = LeedamAlgorithm.factorModulus(new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus)));
+                LeedamAlgorithm.LeedamKeyson.factorModulusParallel(new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus)));
                 //int converted_bytes = BitConverter.ToInt32(p, 0);
                 //IEnumerable<BigInteger> query = HelperTools.Erastosthenes.GetPrimeFactors(mod_big);
                 stopWatch.Stop();

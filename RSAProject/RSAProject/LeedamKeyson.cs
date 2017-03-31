@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using System.Threading;
 using HelperTools;
 
-namespace RSAProject
+namespace LeedamAlgorithm
 {
-    class LeedamKeyson //I will find you... and I will factor you.
+    public class LeedamKeyson //I will find you... and I will factor you.
     {
         /**
          * Returns p & q 
