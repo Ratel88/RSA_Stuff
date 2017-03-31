@@ -53,7 +53,7 @@ namespace LeedamAlgorithm
             BigInteger factor = 0;
 
             if (number_to_start_on.IsEven)
-                number_to_start_on++;
+                number_to_start_on--;
 
             BigInteger initial_number = number_to_start_on;
 
@@ -70,6 +70,7 @@ namespace LeedamAlgorithm
              * We're also guaranteed that only one thread will ever execute the break statement since each enumerable is unique. So we will get exactly one factor.
              * 
              **/
+            
             Parallel.ForEach(RSAProject.BetterEnumerable.SteppedRange(number_to_start_on, new BigInteger(1), -2), (possible_factor, state) =>
             {
                 if (m % possible_factor == 0) //If modulus (m) is perfectly factored by the current number, then we found a factor.
@@ -78,6 +79,8 @@ namespace LeedamAlgorithm
                     factor = possible_factor; //Record that factor.
                 }
             });
+
+
 
             return new BigInteger[] { factor, m / factor };
         }
