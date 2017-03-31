@@ -20,7 +20,7 @@ namespace LeedamAlgorithm
             BigInteger factor = 0;
 
             if (number_to_start_on.IsEven)
-                number_to_start_on++;
+                number_to_start_on--;
 
             BigInteger initial_number = number_to_start_on;
 
