@@ -91,7 +91,7 @@ namespace RSAEncryption
             {
                 Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
-                     
+                    
                 string message = "Alice and Bob";
                 byte[] unencoded_message = Encoding.ASCII.GetBytes(message);
                 byte[] encoded_message = playtest.Encrypt(unencoded_message, false);
