@@ -41,9 +41,9 @@ namespace RSAProject
 
     public static class BetterEnumerable
     {
-        public static IEnumerable<BigInteger> SteppedRange(BigInteger fromInclusive, BigInteger toExclusive, int step)
+        public static IEnumerable<int> SteppedRange(int fromInclusive, int toExclusive, int step)
         {
-            for (var i = fromInclusive; i > toExclusive; i += step)
+            for (var i = fromInclusive; i < toExclusive && i > 0; i += step)
             {
                 yield return i;
             }
