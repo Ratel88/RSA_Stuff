@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Timers;
 using System.Numerics;
 using System.Diagnostics;
+using QuadraticSieveAlgorithm;
 
 using System.Threading;
 
@@ -99,10 +100,15 @@ namespace RSAEncryption
                 byte[] p = parameters.Modulus;
                 
                 string mod = HelperTools.ByteArrayToString.convert(parameters.Modulus);
+                BigInteger e_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Exponent));
                 BigInteger p_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.P));
                 BigInteger q_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Q));
                 BigInteger mod_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus));
                 BigInteger[] factors;
+
+                //BigInteger power = BigIntegerWrapper.Log(mod_big) * (BigIntegerWrapper.Log(BigIntegerWrapper.Log(mod_big)));
+                QuadraticSieve sieve = new QuadraticSieve(mod_big);
+                factors = sieve.getFactorsSerial();
 
                 Task t = Task.Run(() =>
                 {
