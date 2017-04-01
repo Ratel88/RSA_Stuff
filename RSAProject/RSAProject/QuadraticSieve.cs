@@ -22,32 +22,37 @@ namespace QuadraticSieveAlgorithm
 
         public BigInteger[] getFactorsSerial()
         {
+            BigInteger p = 10235749;
+            BigInteger q = 23572337;
+
+            BigInteger integer_to_factor = p * q;
+
             int factor_base_size = QuadraticSieveFunctions.getFactorBaseSize(integer_to_factor);
+            factor_base_size = (int)BigIntegerWrapper.SqRt(integer_to_factor);
             BigInteger sieve_interval_upper = QuadraticSieveFunctions.getSieveInterval(factor_base_size);
-            BigInteger sieve_interval_lower = 1;
 
-            BigInteger to_factor = new BigInteger(10235749) * new BigInteger(23572337);
+            int[] factor_base = QuadraticSieveFunctions.SieveOfErastosthenesSerial(factor_base_size);
+            //factor_base = new int[] {0};
+            //factor_base = QuadraticSieveFunctions.SieveOfErastosthenesParallel(factor_base_size);
 
-            int k = (int)BigIntegerWrapper.SqRt(to_factor);
+
+            int[] quadratic_residues = QuadraticSieveFunctions.getResiduesSerial(factor_base, integer_to_factor);
+
+            BigInteger sieve_interval = QuadraticSieveFunctions.getSieveInterval(factor_base_size);
+            BigInteger sieve_interval_start = BigIntegerWrapper.SqRt(integer_to_factor);
+
+            LinkedList<BigInteger[]> smooth_numbers = QuadraticSieveFunctions.SmoothNumberSieveSerial(integer_to_factor, quadratic_residues, sieve_interval_start, sieve_interval_start + sieve_interval);
             //int k = 100000000;
-            // QuadraticSieveFunctions.getFactorBaseSize(integer_to_factor);
+            //QuadraticSieveFunctions.getFactorBaseSize(integer_to_factor);
             //int test_factor_base_size = QuadraticSieveFunctions.getFactorBaseSize(k);
-            int[] factor_base_serial = QuadraticSieveFunctions.SieveOfErastosthenesSerial(k);
             
 
-            int result = factorSerial(factor_base_serial, to_factor);
-            int resul2 = factorParallel(factor_base_serial, to_factor);
+            int result = factorSerial(factor_base, integer_to_factor);
+            int result2 = factorParallel(factor_base, integer_to_factor);
             //int[] factor_base_parallel_improved = QuadraticSieveFunctions.SieveOfErastosthenesParallelImproved(2 * k);
             //int[] factor_base_parallel = QuadraticSieveFunctions.SieveOfErastosthenesParallel(2*k);
 
-            int ctr = 0;
-            for (int i = 0; i < factor_base_serial.Length; i++)
-                if (QuadraticSieveFunctions.Legendre(k, factor_base_serial[i]) == 1)
-                    ctr++;
-
-            Console.WriteLine("Generated " + ctr + " numbers with quadratic residue.");
-
-            return new BigInteger[] { new BigInteger(QuadraticSieveFunctions.getFactorBaseSize(integer_to_factor)), new BigInteger(QuadraticSieveFunctions.getFactorBaseSize(integer_to_factor)) };
+            return new BigInteger[] { result, (int)(sieve_interval_upper/result) };
         }
 
         private int factorParallel(int[] primes, BigInteger co_prime)
@@ -59,12 +64,12 @@ namespace QuadraticSieveAlgorithm
             Stopwatch factor_parallel = new Stopwatch();
             factor_parallel.Start();
 
-            Parallel.For(0, primes.Length, (i, state) =>
+            Parallel.ForEach(primes, (i, state) =>
             {
-                if (co_prime % primes[i] == 0)
+                if (co_prime % i == 0)
                 {
                     state.Break();
-                    a_factor = primes[i];
+                    a_factor = i;
                 }
             });
 
@@ -87,8 +92,8 @@ namespace QuadraticSieveAlgorithm
             {
                 if (co_prime % primes[i] == 0)
                 {
-                    break;
                     a_factor = primes[i];
+                    break;
                 }
             }
 
@@ -162,71 +167,7 @@ namespace QuadraticSieveAlgorithm
             return primes.ToArray();
         }
 
-        /**
-         * It's pretty much impossible to modify data that is being used in parallel for obvious reasons.
-         * 
-         * What we can do instead is mark "non-prime" entries for removal in parallel and then modify
-         * the list in serial.
-         * 
-         * The parallel implementation of the sieve uses a second array that is written to in parallel to
-         * indicate entries in the factor base list that are not primes to mark them for removal later.
-         * Once these entries are removed (which must be done in serial) the resulting list will be identical
-         * to that obtained from the serial algorithm.
-         **/
         public static int[] SieveOfErastosthenesParallel(int factor_base_size)
-        {
-            var factor_base = new List<int>();
-            factor_base.Add(2);
-            factor_base.Add(3);
-
-            for (int i = 5; i < factor_base_size; i += 2)
-                factor_base.Add(i);
-
-            int p = 0;
-            int m = factor_base[factor_base.Count - 1];
-            int[] marked_for_removal = new int[factor_base.Count];
-
-            Stopwatch erastosthenes_parallel = new Stopwatch();
-            erastosthenes_parallel.Start();
-
-            for (int i = 0; p < m && i < factor_base.Count; i++)
-            {
-                //As the list starts becoming small, the overhead of coordinating threads starts to outweight the benefits of parallelization.
-                //So we allow for a hybrid approach to execute in serial when the list starts becoming very small.
-                if (factor_base.Count < min_parallel_list_size)
-                {
-                    p = factor_base[i];
-
-                    for (int j = i + 1; j < factor_base.Count; j++)
-                        if (factor_base[j] % p == 0)
-                            factor_base.RemoveAt(j);
-                }
-                else 
-                {
-                    Parallel.For(i + 1, factor_base.Count, j =>
-                    {
-                        p = factor_base[i];
-
-                        if (factor_base[j] % p == 0)
-                            marked_for_removal[j] = 1;
-                        else
-                            marked_for_removal[j] = 0;
-                    });
-
-                    for (int k = factor_base.Count - 1; k > 0; k--)
-                        if (marked_for_removal[k] == 1)
-                            factor_base.RemoveAt(k);
-                }
-                
-            }
-
-            erastosthenes_parallel.Stop();
-            Console.WriteLine("Parallel Sieve of Erastosthenes Runtime: " + erastosthenes_parallel.ElapsedMilliseconds + "ms.");
-
-            return factor_base.ToArray();
-        }
-
-        public static int[] SieveOfErastosthenesParallelImproved(int factor_base_size)
         {
             var primes = new LinkedList<int>();
 
@@ -234,27 +175,135 @@ namespace QuadraticSieveAlgorithm
 
             int[] marked_for_removal = new int[factor_base_size];
 
-            Stopwatch erastosthenes_serial = new Stopwatch();
-            erastosthenes_serial.Start();
+            Stopwatch erastothenes_parallel = new Stopwatch();
+            erastothenes_parallel.Start();
 
             for (int k = 3; k < factor_base_size; k += 2)
             {
                 if (marked_for_removal[k / 2] == 0)
                 {
                     primes.AddLast(k);
-                    Parallel.ForEach(RSAProject.BetterEnumerable.SteppedRange(k*k, factor_base_size, 2), i =>
-                      {
-                          marked_for_removal[i]++;
-                      });
-                    /*for (int i = k * k; i < factor_base_size && i > 0; i += 2 * k)
-                        marked_for_removal[i / 2]++;*/
+                    
+                    if (factor_base_size - (k * k) < 30000)
+                    {
+                        for (int i = k * k; i < factor_base_size && i > 0; i += 2 * k)
+                            marked_for_removal[i / 2]++;
+                    }
+                    else
+                    {
+                        Parallel.ForEach(RSAProject.BetterEnumerable.SteppedRange(k * k, factor_base_size, 2 * k), (index, state) =>
+                            {
+                                marked_for_removal[index / 2]++;
+                            });
+                    }
+                    
                 }
             }
 
-            erastosthenes_serial.Stop();
-            Console.WriteLine("Serial Sieve of Erastosthenes Runtime: " + erastosthenes_serial.ElapsedMilliseconds + "ms.");
+            erastothenes_parallel.Stop();
+            Console.WriteLine("Serial Sieve of Erastosthenes Runtime: " + erastothenes_parallel.ElapsedMilliseconds + "ms.");
 
             return primes.ToArray();
+        }
+
+        public static int[] getResiduesSerial(int[] factor_base, BigInteger number_to_factor)
+        {
+            LinkedList<int> residues = new LinkedList<int>();
+
+            foreach (int element in factor_base)
+            {
+                if (Legendre(number_to_factor, element) == 1)
+                    residues.AddLast(element);
+            }
+
+            return residues.ToArray();
+        }
+
+        public static LinkedList<BigInteger[]> SmoothNumberSieveSerial(BigInteger number_to_factor, int[] list_of_primes, BigInteger interval_start, BigInteger interval_end)
+        {
+            LinkedList<BigInteger[]> smooth_number_power = new LinkedList<BigInteger[]>();
+
+            for (BigInteger i = interval_start; i < interval_end; i++)
+            {
+                BigInteger candidate = computeQX(i, number_to_factor);
+                BigInteger[] exponents = new BigInteger[list_of_primes.Length];
+                for (int j = 0; j < list_of_primes.Length; j++)
+                {
+                    if (candidate == 15605429)
+                        Console.Write("Here I am.");
+
+                    bool flag = true;
+                    BigInteger gcd;
+                    int exponent_count = 0;
+                    while (flag)
+                    {
+                        gcd = BigInteger.GreatestCommonDivisor(candidate, list_of_primes[j]);
+                        if (gcd != 1 && gcd != candidate)
+                        {
+                            candidate /= gcd;
+                            exponent_count++;
+                        }
+                        else
+                            flag = false;
+                    }
+
+                    exponents[j] = exponent_count;
+
+                    if (candidate == 1)
+                    {
+                        smooth_number_power.AddLast(exponents);
+                        break;
+                    }
+                }
+            }
+
+            return smooth_number_power;
+        }
+
+        public static LinkedList<BigInteger[]> SmoothNumberSieve(BigInteger number_to_factor, int[] list_of_primes, BigInteger interval_start, BigInteger interval_end)
+        {
+            LinkedList<BigInteger[]> smooth_number_power = new LinkedList<BigInteger[]>();
+
+            for (BigInteger i = interval_start; i < interval_end; i++)
+            {
+                BigInteger candidate = computeQX(i, number_to_factor);
+                BigInteger[] exponents = new BigInteger[list_of_primes.Length];
+                for (int j = 0; j < list_of_primes.Length; j++)
+                {
+                    if (candidate == 15605429)
+                        Console.Write("Here I am.");
+
+                    bool flag = true;
+                    BigInteger gcd;
+                    int exponent_count = 0;
+                    while (flag)
+                    {
+                        gcd = BigInteger.GreatestCommonDivisor(candidate, list_of_primes[j]);
+                        if (gcd != 1 && gcd != candidate)
+                        {
+                            candidate /= gcd;
+                            exponent_count++;
+                        }
+                        else
+                            flag = false;
+                    }
+
+                    exponents[j] = exponent_count;
+
+                    if (candidate == 1)
+                    {
+                        smooth_number_power.AddLast(exponents);
+                        break;
+                    }
+                }
+            }
+
+            return smooth_number_power;
+        }
+
+        public static BigInteger computeQX(BigInteger x, BigInteger n)
+        {
+            return BigInteger.Pow((x + BigIntegerWrapper.SqRt(n)), 2) % n;
         }
 
         public static BigInteger getSieveInterval(int factor_base_size)
@@ -268,10 +317,10 @@ namespace QuadraticSieveAlgorithm
          * An extra [else if] is left out since we're assuming that we'll only be checking numbers
          * that are prime.
          **/
-        public static int Legendre(BigInteger a, BigInteger p)
+        public static int Legendre(BigInteger a, BigInteger prime)
         {
-            if (a >= p || a < 0)
-                return Legendre(a % p, p);
+            if (a >= prime || a < 0)
+                return Legendre(a % prime, prime);
             else if (a == 0 || a == 1)
             {
                 if (a == 0)
@@ -281,24 +330,24 @@ namespace QuadraticSieveAlgorithm
             }
             else if (a == 2)
             {
-                if (isCongruent(p, 1, 8) || isCongruent(p, -1, 8))
+                if (isCongruent(prime, 1, 8) || isCongruent(prime, -1, 8))
                     return 1;
                 else
                     return -1;
             }
-            else if (a == (p - 1))
+            else if (a == (prime - 1))
             {
-                if (isCongruent(p, 1, 4))
+                if (isCongruent(prime, 1, 4))
                     return 1;
                 else
                     return -1;
             }
             else
             {
-                if (isCongruent(((p - 1) / 2), 0, 2) || isCongruent(((a - 1) / 2), 0, 2))
-                    return Legendre(p, a);
+                if (isCongruent(((prime - 1) / 2), 0, 2) || isCongruent(((a - 1) / 2), 0, 2))
+                    return Legendre(prime, a);
                 else
-                    return (-1) * Legendre(p, a);
+                    return (-1) * Legendre(prime, a);
             }
         }
 
@@ -327,20 +376,6 @@ namespace QuadraticSieveAlgorithm
         {
             return new BigInteger(BigInteger.Log(n));
         }
-
-        /**
-         * Returns the floor of the result of n raised to p
-         **/
-        /*public static BigInteger Pow(BigInteger n, double p)
-        {
-            //Compute the integer part of the exponent
-            int int_of_exponent = (int)Math.Floor(p);
-            //Compute the double part of the exponent
-            double fraction_of_exponent = p - int_of_exponent;
-
-            BigInteger temp = BigInteger.Pow(n, int_of_exponent);
-            double temp2 = Math.Pow(n, fraction_of_exponent);
-        }*/
 
         public static BigInteger SqRt(BigInteger N)
         {
