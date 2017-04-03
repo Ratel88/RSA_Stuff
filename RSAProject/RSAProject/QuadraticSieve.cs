@@ -241,6 +241,9 @@ namespace QuadraticSieveAlgorithm
                         tracker[i + j * denominator] = false;
                     }
                 }
+                sundaram_serial.Stop();
+                Stopwatch serielsearch = new Stopwatch();
+                serielsearch.Start();
 
                 int dummy = 0;
                 for (int i = 1; i < k; i++)
@@ -254,8 +257,9 @@ namespace QuadraticSieveAlgorithm
                         }
                     }
                 }
-
-                sundaram_serial.Stop();
+                serielsearch.Stop();
+                
+                Console.WriteLine("search runtime: " + serielsearch.ElapsedMilliseconds + "ms.");
                 Console.WriteLine("Serial Sieve of Sundaram Runtime: " + sundaram_serial.ElapsedMilliseconds + "ms.");
 
                 return dummy;
@@ -299,6 +303,9 @@ namespace QuadraticSieveAlgorithm
                         tracker[i + j * denominator] = false;
                     }
                 }
+                sundaram_parallel.Stop();
+                Stopwatch parallelSearch = new Stopwatch();
+                parallelSearch.Start();
 
                 int dummy = 0;
                 int final = 0;
@@ -314,8 +321,9 @@ namespace QuadraticSieveAlgorithm
                         }
                     }
                 });
+                parallelSearch.Stop();
 
-                sundaram_parallel.Stop();
+                Console.WriteLine("search runtime: " + parallelSearch.ElapsedMilliseconds + "ms.");
                 Console.WriteLine("Parallel Sieve of Sundaram Runtime: " + sundaram_parallel.ElapsedMilliseconds + "ms.");
 
                 return final;
