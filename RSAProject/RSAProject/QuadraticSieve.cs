@@ -22,18 +22,24 @@ namespace QuadraticSieveAlgorithm
 
         public BigInteger[] getFactorsSerial()
         {
-            BigInteger p = 10235749;
-            BigInteger q = 23572337;
+            BigInteger p = 1997333137;
+            BigInteger q = 2106945901;
 
             BigInteger integer_to_factor = p * q;
+
+            int factor_parallel = QuadraticSieveFunctions.SieveofSundaramParallel(integer_to_factor);
+            int factor_serial = QuadraticSieveFunctions.SieveofSundaramSerial(integer_to_factor);
+
 
             int factor_base_size = QuadraticSieveFunctions.getFactorBaseSize(integer_to_factor);
             factor_base_size = (int)BigIntegerWrapper.SqRt(integer_to_factor);
             BigInteger sieve_interval_upper = QuadraticSieveFunctions.getSieveInterval(factor_base_size);
 
             int[] factor_base = QuadraticSieveFunctions.SieveOfErastosthenesSerial(factor_base_size);
-            //factor_base = new int[] {0};
-            //factor_base = QuadraticSieveFunctions.SieveOfErastosthenesParallel(factor_base_size);
+            factor_base = new int[] {0};
+            factor_base = QuadraticSieveFunctions.SieveOfErastosthenesParallel(factor_base_size);
+
+            
 
 
             int[] quadratic_residues = QuadraticSieveFunctions.getResiduesSerial(factor_base, integer_to_factor);
@@ -191,9 +197,11 @@ namespace QuadraticSieveAlgorithm
                     }
                     else
                     {
-                        Parallel.ForEach(RSAProject.BetterEnumerable.SteppedRange(k * k, factor_base_size, 2 * k), (index, state) =>
+                        Parallel.For(0, (factor_base_size - (k * k)) / (2 * k), i =>
                             {
-                                marked_for_removal[index / 2]++;
+                                int index = (int)(new BigInteger(k * k) + new BigInteger(2*k*i));
+                                if(index >= 0)
+                                    marked_for_removal[index / 2]++;
                             });
                     }
                     
@@ -201,9 +209,117 @@ namespace QuadraticSieveAlgorithm
             }
 
             erastothenes_parallel.Stop();
-            Console.WriteLine("Serial Sieve of Erastosthenes Runtime: " + erastothenes_parallel.ElapsedMilliseconds + "ms.");
+            Console.WriteLine("Parallel Sieve of Erastosthenes Runtime: " + erastothenes_parallel.ElapsedMilliseconds + "ms.");
 
             return primes.ToArray();
+        }
+
+        public static int SieveofSundaramSerial(BigInteger to_factor)
+        {
+            if (BigIntegerWrapper.SqRt(to_factor) < int.MaxValue - 1)
+            {
+                int BAsize = (int)BigIntegerWrapper.SqRt(to_factor);
+                int k = BAsize / 2;
+
+                BitArray tracker = new BitArray(BAsize);
+
+                /* SET ALL TO PRIME STATUS */
+                tracker.SetAll(true);
+
+                int maxVal = 0;
+                int denominator = 0;
+
+                Stopwatch sundaram_serial = new Stopwatch();
+                sundaram_serial.Start();
+
+                for (int i = 1; i < k; i++)
+                {
+                    denominator = (i << 1) + 1;
+                    maxVal = (k - i) / denominator;
+                    for (int j = i; j <= maxVal; j++)
+                    {
+                        tracker[i + j * denominator] = false;
+                    }
+                }
+
+                int dummy = 0;
+                for (int i = 1; i < k; i++)
+                {
+                    if (tracker[i])
+                    {
+                        dummy = (i << 1) + 1; // dummy contains prime number.The code is here not ignore the prime number calcuation part.
+                        if(to_factor % dummy == 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                sundaram_serial.Stop();
+                Console.WriteLine("Serial Sieve of Sundaram Runtime: " + sundaram_serial.ElapsedMilliseconds + "ms.");
+
+                return dummy;
+            }
+            else
+            {
+                Console.WriteLine("Too big to factor with Sieve of Sundaram. ");
+                return -1;
+            }
+        }
+
+        public static int SieveofSundaramParallel(BigInteger to_factor)
+        {
+            if (BigIntegerWrapper.SqRt(to_factor) < int.MaxValue - 1)
+            {
+                int BAsize = (int)BigIntegerWrapper.SqRt(to_factor);
+                int k = BAsize / 2;
+
+                BitArray tracker = new BitArray(BAsize);
+
+                /* SET ALL TO PRIME STATUS */
+                tracker.SetAll(true);
+
+                int maxVal = 0;
+                int denominator = 0;
+
+                Stopwatch sundaram_parallel = new Stopwatch();
+                sundaram_parallel.Start();
+
+                for (int i = 1; i < k; i++)
+                {
+                    denominator = (i << 1) + 1;
+                    maxVal = (k - i) / denominator;
+                    for (int j = i; j <= maxVal; j++)
+                    {
+                        tracker[i + j * denominator] = false;
+                    }
+                }
+
+                int dummy = 0;
+                int final = 0;
+                Parallel.For(1, k, (i, state) =>
+                {
+                    if (tracker[i])
+                    {
+                        dummy = (i << 1) + 1; // dummy contains prime number.The code is here not ignore the prime number calcuation part.
+                        if (to_factor % dummy == 0)
+                        {
+                            final = dummy;
+                            state.Break();
+                        }
+                    }
+                });
+
+                sundaram_parallel.Stop();
+                Console.WriteLine("Parallel Sieve of Sundaram Runtime: " + sundaram_parallel.ElapsedMilliseconds + "ms.");
+
+                return final;
+            }
+            else
+            {
+                Console.WriteLine("Too big to factor with Sieve of Sundaram. ");
+                return -1;
+            }
         }
 
         public static int[] getResiduesSerial(int[] factor_base, BigInteger number_to_factor)
