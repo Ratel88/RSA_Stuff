@@ -289,6 +289,11 @@ namespace QuadraticSieveAlgorithm
                 {
                     denominator = (i << 1) + 1;
                     maxVal = (k - i) / denominator;
+
+                    /*Parallel.For(i, maxVal, new ParallelOptions { MaxDegreeOfParallelism = 2 }, (j, state) =>
+                    {
+                        tracker[i + j * denominator] = false;
+                    });*/
                     for (int j = i; j <= maxVal; j++)
                     {
                         tracker[i + j * denominator] = false;
@@ -297,7 +302,7 @@ namespace QuadraticSieveAlgorithm
 
                 int dummy = 0;
                 int final = 0;
-                Parallel.For(1, k, (i, state) =>
+                Parallel.For(1, k, new ParallelOptions { MaxDegreeOfParallelism = 4 }, (i, state) =>
                 {
                     if (tracker[i])
                     {
