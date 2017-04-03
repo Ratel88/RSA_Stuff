@@ -225,7 +225,7 @@ namespace QuadraticSieveAlgorithm
 
             return factor_base.ToArray();
         }
-
+      
         public static int[] SieveOfErastosthenesParallelImproved(int factor_base_size)
         {
             var primes = new LinkedList<int>();

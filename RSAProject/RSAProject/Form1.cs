@@ -93,7 +93,7 @@ namespace RSAEncryption
                 Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
                     
-                string message = "Alice and Bob";
+                string message = "Adam is a God";
                 byte[] unencoded_message = Encoding.ASCII.GetBytes(message);
                 byte[] encoded_message = playtest.Encrypt(unencoded_message, false);
                 RSAParameters parameters = playtest.ExportParameters(true);
@@ -103,20 +103,29 @@ namespace RSAEncryption
                 BigInteger e_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Exponent));
                 BigInteger p_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.P));
                 BigInteger q_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Q));
+                BigInteger d_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.D));
                 BigInteger mod_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus));
+                BigInteger dp_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.DP));
+                BigInteger dq_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.DQ));
+                BigInteger inverseQ_big = new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.InverseQ));
+
+                BigInteger dp_check = d_big % (p_big-1);
+
                 BigInteger[] factors;
 
-                //BigInteger power = BigIntegerWrapper.Log(mod_big) * (BigIntegerWrapper.Log(BigIntegerWrapper.Log(mod_big)));
+
+                BigInteger power = BigIntegerWrapper.Log(mod_big) * (BigIntegerWrapper.Log(BigIntegerWrapper.Log(mod_big)));
                 QuadraticSieve sieve = new QuadraticSieve(mod_big);
                 factors = sieve.getFactorsSerial();
 
-                Task t = Task.Run(() =>
+
+                /*Task t = Task.Run(() =>
                 {
-                    factors = LeedamAlgorithm.LeedamKeyson.factorModulusSerial(new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus)));
+                  factors = LeedamAlgorithm.LeedamKeyson.factorModulusSerial(new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus)));
                 });
-                t.Wait();
-                //int converted_bytes = BitConverter.ToInt32(p, 0);
-                //IEnumerable<BigInteger> query = HelperTools.Erastosthenes.GetPrimeFactors(mod_big);
+                t.Wait();*/
+                int converted_bytes = BitConverter.ToInt32(p, 0);
+                IEnumerable<BigInteger> query = HelperTools.Erastosthenes.GetPrimeFactors(mod_big);
                 stopWatch.Stop();
                 Console.WriteLine("End.");
             }
