@@ -31,7 +31,7 @@ namespace QuadraticSieveAlgorithm
 
             Console.WriteLine("p value: " + p);
             Console.WriteLine("q value: " + q);
-            Console.WriteLine("Modulus: " + p * q);
+
 
             BigInteger[] bruteforce_Serial = LeedamKeyson.factorModulusSerial(integer_to_factor);
 
