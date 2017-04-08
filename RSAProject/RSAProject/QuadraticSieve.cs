@@ -5,10 +5,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Numerics;
+using HelperTools;
 
 namespace QuadraticSieveAlgorithm
-{  
+{
     class QuadraticSieve
     {
         private BigInteger integer_to_factor;
@@ -27,8 +29,31 @@ namespace QuadraticSieveAlgorithm
 
             BigInteger integer_to_factor = p * q;
 
-            int factor_parallel = QuadraticSieveFunctions.SieveofSundaramParallel(integer_to_factor);
+            Console.WriteLine("p value: " + p);
+            Console.WriteLine("q value: " + q);
+            Console.WriteLine("Modulus: " + p * q);
+
+            BigInteger[] bruteforce_Serial = LeedamKeyson.factorModulusSerial(integer_to_factor);
+
+            Console.WriteLine("brute force serial p value: " + bruteforce_Serial[0]);
+            Console.WriteLine("brute force serial q value: " + bruteforce_Serial[1]);
+
+
+            BigInteger[] bruteforce_Parallel = LeedamKeyson.factorModulusParallel(integer_to_factor);
+
+            Console.WriteLine("brute force parallel p value: " + bruteforce_Parallel[0]);
+            //Console.WriteLine("brute force parallel q value" + bruteforce_Parallel[1]);
+
+
             int factor_serial = QuadraticSieveFunctions.SieveofSundaramSerial(integer_to_factor);
+            Console.WriteLine("Serial returns the p value: " + factor_serial);
+            Console.WriteLine("Serial returns the q value: " + (integer_to_factor / factor_serial));
+
+            int factor_parallel = QuadraticSieveFunctions.SieveofSundaramParallel(integer_to_factor);
+
+            Console.WriteLine("Parallel returns the p value: " + factor_parallel);
+            Console.WriteLine("Parallel returns the q value: " + (integer_to_factor / factor_parallel));
+
 
 
             int factor_base_size = QuadraticSieveFunctions.getFactorBaseSize(integer_to_factor);
@@ -36,10 +61,10 @@ namespace QuadraticSieveAlgorithm
             BigInteger sieve_interval_upper = QuadraticSieveFunctions.getSieveInterval(factor_base_size);
 
             int[] factor_base = QuadraticSieveFunctions.SieveOfErastosthenesSerial(factor_base_size);
-            factor_base = new int[] {0};
+            factor_base = new int[] { 0 };
             factor_base = QuadraticSieveFunctions.SieveOfErastosthenesParallel(factor_base_size);
 
-            
+
 
 
             int[] quadratic_residues = QuadraticSieveFunctions.getResiduesSerial(factor_base, integer_to_factor);
@@ -51,14 +76,14 @@ namespace QuadraticSieveAlgorithm
             //int k = 100000000;
             //QuadraticSieveFunctions.getFactorBaseSize(integer_to_factor);
             //int test_factor_base_size = QuadraticSieveFunctions.getFactorBaseSize(k);
-            
+
 
             int result = factorSerial(factor_base, integer_to_factor);
             int result2 = factorParallel(factor_base, integer_to_factor);
             //int[] factor_base_parallel_improved = QuadraticSieveFunctions.SieveOfErastosthenesParallelImproved(2 * k);
             //int[] factor_base_parallel = QuadraticSieveFunctions.SieveOfErastosthenesParallel(2*k);
 
-            return new BigInteger[] { result, (int)(sieve_interval_upper/result) };
+            return new BigInteger[] { result, (int)(sieve_interval_upper / result) };
         }
 
         private int factorParallel(int[] primes, BigInteger co_prime)
@@ -189,7 +214,7 @@ namespace QuadraticSieveAlgorithm
                 if (marked_for_removal[k / 2] == 0)
                 {
                     primes.AddLast(k);
-                    
+
                     if (factor_base_size - (k * k) < 30000)
                     {
                         for (int i = k * k; i < factor_base_size && i > 0; i += 2 * k)
@@ -199,12 +224,12 @@ namespace QuadraticSieveAlgorithm
                     {
                         Parallel.For(0, (factor_base_size - (k * k)) / (2 * k), i =>
                             {
-                                int index = (int)(new BigInteger(k * k) + new BigInteger(2*k*i));
-                                if(index >= 0)
+                                int index = (int)(new BigInteger(k * k) + new BigInteger(2 * k * i));
+                                if (index >= 0)
                                     marked_for_removal[index / 2]++;
                             });
                     }
-                    
+
                 }
             }
 
@@ -248,7 +273,7 @@ namespace QuadraticSieveAlgorithm
                     if (tracker[i])
                     {
                         dummy = (i << 1) + 1; // dummy contains prime number.The code is here not ignore the prime number calcuation part.
-                        if(to_factor % dummy == 0)
+                        if (to_factor % dummy == 0)
                         {
                             break;
                         }
@@ -479,7 +504,7 @@ namespace QuadraticSieveAlgorithm
         {
             int[] to_return = new int[((stop_exclusive - start_inclusive) / step_value) + 1];
 
-            for(int i = 0; i < to_return.Length; i++)
+            for (int i = 0; i < to_return.Length; i++)
                 to_return[i] = start_inclusive + (i * step_value);
 
             return to_return;
@@ -496,6 +521,98 @@ namespace QuadraticSieveAlgorithm
         public static BigInteger SqRt(BigInteger N)
         {
             return new BigInteger(Math.Exp(BigInteger.Log(N) / 2));
+        }
+    }
+    public class LeedamKeyson //I will find you... and I will factor you.
+    {
+        #region Sequential_Loop
+        public static BigInteger[] factorModulusSerial(BigInteger m)
+        {
+            Stopwatch factor_serial = new Stopwatch();
+            factor_serial.Start();
+
+            bool factored_it = false;
+
+            BigInteger number_to_start_on = BigIntegerTools.SqRt(m);
+            BigInteger factor = 0;
+
+            if (number_to_start_on.IsEven)
+                number_to_start_on--;
+
+            BigInteger initial_number = number_to_start_on;
+
+            Thread.CurrentThread.Priority = ThreadPriority.Highest; //Set main thread priority to highest (pretty sure this is "Real Time");
+
+            while (!factored_it)
+            {
+                if (m % number_to_start_on == 0) //If modulus (m) is perfectly factored by the current number, then we found a factor.
+                {
+                    factored_it = true;
+                    factor = number_to_start_on; //Record that factor.
+                }
+                else
+                    number_to_start_on -= 2;
+            }
+
+            Thread.CurrentThread.Priority = ThreadPriority.Normal; //Set main thread priority back to normal.
+            factor_serial.Stop();
+            Console.WriteLine("Serial Factoring Runtime: " + factor_serial.ElapsedMilliseconds + "ms.");
+            return new BigInteger[] { factor, m / factor };
+        }
+        #endregion
+
+        /**
+         * Returns p & q 
+         **/
+        #region Parallel_Loop
+        public static BigInteger[] factorModulusParallel(BigInteger m)
+        {
+            BigInteger number_to_start_on = BigIntegerTools.SqRt(m);
+            BigInteger factor = 0;
+
+            if (number_to_start_on.IsEven)
+                number_to_start_on--;
+
+            BigInteger initial_number = number_to_start_on;
+
+            /**
+             * MSDN blog on implementing parallel while loop that are breakable: https://blogs.msdn.microsoft.com/pfxteam/2009/08/12/implementing-parallel-while-with-parallel-foreach/
+             * Pretty rough to read though, and our issue is that we also need a -=2 iterator not ++.
+             * 
+             * So a ForEach parallelized loop is used instead. Notice that the "BetterEnumerable" class method uses yield return so it should be perfectly efficient for memory usage.
+             * In this way we generate a: from initial number to 0, decrements of 2 parallelized for loop.
+             * 
+             * Since we're guaranteed that at some point a thread will find the factor, then once that occurs we break the loop (which is actually a method) 
+             * to prevent any further iterations from running and then return our factors.
+             * 
+             * We're also guaranteed that only one thread will ever execute the break statement since each enumerable is unique. So we will get exactly one factor.
+             * 
+             **/
+            /*Parallel.ForEach(RSAProject.BetterEnumerable.SteppedRange(number_to_start_on, new BigInteger(1), -2), (possible_factor, state) =>
+            {
+                if (m % possible_factor == 0) //If modulus (m) is perfectly factored by the current number, then we found a factor.
+                {
+                    state.Break();
+                    factor = possible_factor; //Record that factor.
+                }
+            });*/
+
+            return new BigInteger[] { factor, m };
+        }
+        #endregion
+
+        /**
+         * Unused, might be useful later on? But doubtful, it's pretty complicated.
+         **/
+        private static void While(ParallelOptions parallelOptions, Func<bool> condition, Action<ParallelLoopState> body)
+        {
+            Parallel.ForEach(new RSAProject.InfinitePartitioner(), parallelOptions, (ignored, loopState) =>
+            {
+                if (condition())
+                    body(loopState);
+                else
+                    loopState.Stop();
+            });
         }
     }
 }

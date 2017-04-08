@@ -93,7 +93,7 @@ namespace RSAEncryption
                 Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
                     
-                string message = "Adam is a God";
+                string message = "Bob and Alice";
                 byte[] unencoded_message = Encoding.ASCII.GetBytes(message);
                 byte[] encoded_message = playtest.Encrypt(unencoded_message, false);
                 RSAParameters parameters = playtest.ExportParameters(true);
@@ -116,14 +116,14 @@ namespace RSAEncryption
 
                 BigInteger power = BigIntegerWrapper.Log(mod_big) * (BigIntegerWrapper.Log(BigIntegerWrapper.Log(mod_big)));
                 QuadraticSieve sieve = new QuadraticSieve(mod_big);
-                factors = sieve.getFactorsSerial();
 
 
-                /*Task t = Task.Run(() =>
+
+                Task t = Task.Run(() =>
                 {
-                  factors = LeedamAlgorithm.LeedamKeyson.factorModulusSerial(new BigInteger(HelperTools.RSAParametersTranslator.translateParameter(parameters.Modulus)));
+                    factors = sieve.getFactorsSerial();
                 });
-                t.Wait();*/
+                t.Wait();
                 int converted_bytes = BitConverter.ToInt32(p, 0);
                 IEnumerable<BigInteger> query = HelperTools.Erastosthenes.GetPrimeFactors(mod_big);
                 stopWatch.Stop();
