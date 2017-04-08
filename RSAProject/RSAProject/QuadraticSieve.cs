@@ -266,6 +266,9 @@ namespace QuadraticSieveAlgorithm
                         tracker[i + j * denominator] = false;
                     }
                 }
+                sundaram_serial.Stop();
+                Stopwatch serielsearch = new Stopwatch();
+                serielsearch.Start();
 
                 int dummy = 0;
                 for (int i = 1; i < k; i++)
@@ -279,8 +282,9 @@ namespace QuadraticSieveAlgorithm
                         }
                     }
                 }
-
-                sundaram_serial.Stop();
+                serielsearch.Stop();
+                
+                Console.WriteLine("search runtime: " + serielsearch.ElapsedMilliseconds + "ms.");
                 Console.WriteLine("Serial Sieve of Sundaram Runtime: " + sundaram_serial.ElapsedMilliseconds + "ms.");
 
                 return dummy;
@@ -314,15 +318,23 @@ namespace QuadraticSieveAlgorithm
                 {
                     denominator = (i << 1) + 1;
                     maxVal = (k - i) / denominator;
+
+                    /*Parallel.For(i, maxVal, new ParallelOptions { MaxDegreeOfParallelism = 2 }, (j, state) =>
+                    {
+                        tracker[i + j * denominator] = false;
+                    });*/
                     for (int j = i; j <= maxVal; j++)
                     {
                         tracker[i + j * denominator] = false;
                     }
                 }
+                sundaram_parallel.Stop();
+                Stopwatch parallelSearch = new Stopwatch();
+                parallelSearch.Start();
 
                 int dummy = 0;
                 int final = 0;
-                Parallel.For(1, k, (i, state) =>
+                Parallel.For(1, k, new ParallelOptions { MaxDegreeOfParallelism = 4 }, (i, state) =>
                 {
                     if (tracker[i])
                     {
@@ -334,8 +346,9 @@ namespace QuadraticSieveAlgorithm
                         }
                     }
                 });
+                parallelSearch.Stop();
 
-                sundaram_parallel.Stop();
+                Console.WriteLine("search runtime: " + parallelSearch.ElapsedMilliseconds + "ms.");
                 Console.WriteLine("Parallel Sieve of Sundaram Runtime: " + sundaram_parallel.ElapsedMilliseconds + "ms.");
 
                 return final;
